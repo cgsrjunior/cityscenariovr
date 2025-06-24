@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://bx8jfqrqlxffa"]
+
+[ext_resource type="PackedScene" uid="uid://bxpjuq0iytskq" path="res://assets/full_gameready_city_buildings_retextured/scene.gltf" id="1_f3sb7"]
+[ext_resource type="PackedScene" uid="uid://bs72ogkvdd7d6" path="res://addons/proto_controller/proto_controller.tscn" id="2_fj7yv"]
+[ext_resource type="Script" uid="uid://3ufm11khbuib" path="res://socket.gd" id="3_tlwt5"]
+
+[node name="World" type="Node3D"]
+transform = Transform3D(3.99609, 0, 0, 0, 4.10228, 0, 0, 0, 3.99609, 0, 0, 0)
+
+[node name="ProtoController" parent="." instance=ExtResource("2_fj7yv")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.968148, -0.211403, 0.13416, 0, 0.535827, 0.844328, -0.25038, -0.817434, 0.518759, 0, 0, 0)
+light_color = Color(0.970112, 0.968122, 0.991879, 1)
+shadow_enabled = true
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Sketchfab_Scene" parent="CSGCombiner3D" instance=ExtResource("1_f3sb7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.156389, 0, -3.89636)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0.000785407, 0, -0.000785411, 1, 0, -1, 0)
+size = Vector3(151.469, 1, 132.096)
+
+[node name="Node" type="Node" parent="."]
+script = ExtResource("3_tlwt5")
