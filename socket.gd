@@ -1,64 +1,58 @@
 extends Node
 
-# Configura a porta que o servidor vai escutar
-const PORT = 9080
-var _server := TCPServer.new()
-var _client : StreamPeerTCP
+var _ws = WebSocketPeer.new()
 var _proto_controller : Node
 
-# Limiar de variação para ativar o movimento
-const Z_THRESHOLD = 1.5
-var _last_z = 0.0
+# Configurações de sensibilidade
+const MOVEMENT_THRESHOLD := 1.0  # Valor inicial - ajuste conforme necessidade
+const COOLDOWN_TIME := 0.2        # Tempo mínimo entre movimentos detectados
+const REQUIRED_CONSECUTIVE_DETECTIONS := 2  # Número de detecções consecutivas para validar
+
+var _last_accel := Vector3.ZERO
+var _cooldown := 0.0
+var _consecutive_detections := 0
 
 func _ready():
-	_proto_controller = get_node("/root/World/ProtoController") # Ajuste o caminho conforme sua cena
-	# Inicia o servidor
-	if _server.listen(PORT) == OK:
-		print("Servidor iniciado. Escutando na porta ", PORT)
-	else:
-		printerr("Erro ao iniciar servidor")
+	_proto_controller = get_node("/root/World/ProtoController")
+	_ws.connect_to_url("ws://192.168.15.75:8080/sensor/connect?type=android.sensor.accelerometer")
 
-func _process(_delta):
-	# Aceita novas conexões
-	if _server.is_connection_available():
-		_client = _server.take_connection()
-		print("Cliente conectado: ", _client.get_connected_host())
+func _process(delta):
+	_ws.poll()
 	
-	# Processa dados recebidos
-	if _client and _client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
-		var available_bytes = _client.get_available_bytes()
-		if available_bytes > 0:
-			var data = _client.get_utf8_string(available_bytes)
-			if data:
-				print("Dados recebidos: ", data)
-				
-				# Tenta parsear o JSON
+	if _ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
+		while _ws.get_available_packet_count() > 0:
+			var msg = _ws.get_packet().get_string_from_utf8()
+			#print("Mensagem crua:", msg)
+			if msg:
+				# Now i gonna parse this and calculate everything i need
 				var json = JSON.new()
-				var error = json.parse(data)
+				if json.parse(msg) != OK:
+					return
+				var sensor_data = json.get_data()
+				#print(sensor_data)
 				
-				if error == OK:
-					var json_data = json.get_data()
-					print("JSON parseado: ", json_data)
-					_process_sensor_data(json_data)
-				else:
-					printerr("Erro ao parsear JSON: ", json.get_error_message())
-					
-func _process_sensor_data(parse_data):
-	# Extrai valores do acelerômetro
-	var z = float(parse_data.get('z', 0.0))
-		
-	# Calcula variação no eixo Z
-	var z_variation = abs(z - _last_z)
-	_last_z = z
-		# Se a variação ultrapassar o limiar, ativa movimento
-	if z_variation > Z_THRESHOLD:
-		var intensity = clamp(z_variation / 2.0, 0.0, 1.0)  # Normaliza para 0-1
-		_proto_controller.walk_forward(true)
-	else:
-		_proto_controller.walk_forward(false)
+				var sensor_values = sensor_data["values"]
+				#print(sensor_values)
+				
+				if sensor_values != null:
+					var current_accel = Vector3(sensor_values[0], sensor_values[1], sensor_values[2])
+					var delta_variation = current_accel - _last_accel
+					_last_accel = current_accel
+					# Calcula a força do movimento combinando todos os eixos
+					var movement_force = delta_variation.length()
+					if movement_force > MOVEMENT_THRESHOLD:
+						print("Atingiu o threshold")
+						_consecutive_detections += 1
+						if _consecutive_detections >= REQUIRED_CONSECUTIVE_DETECTIONS:
+							_trigger_movement()
+							_consecutive_detections = 0
+							_cooldown = COOLDOWN_TIME
 
-func _exit_tree():
-	# Fecha a conexão ao sair
-	if _client:
-		_client.disconnect_from_host()
-	_server.stop()
+func _trigger_movement():
+	print("MOVIMENTO DO JOELHO DETECTADO!")
+	_proto_controller.walk_forward(true)
+	
+	# Cria um timer para desativar o movimento após um curto período
+	var timer = get_tree().create_timer(0.3)
+	await timer.timeout
+	_proto_controller.walk_forward(false)
