@@ -15,6 +15,38 @@ run/main_scene="uid://bx8jfqrqlxffa"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+XRToolsUserSettings="*res://addons/godot-xr-tools/user_settings/user_settings.gd"
+XRToolsRumbleManager="*res://addons/godot-xr-tools/rumble/rumble_manager.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot-xr-tools/plugin.cfg")
+
+[filesystem]
+
+import/blender/enabled=false
+
+[input]
+
+primary_left={
+"deadzone": 0.2,
+"events": []
+}
+primary_right={
+"deadzone": 0.2,
+"events": []
+}
+primary_up={
+"deadzone": 0.2,
+"events": []
+}
+primary_down={
+"deadzone": 0.2,
+"events": []
+}
+
 [xr]
 
 openxr/enabled=true
