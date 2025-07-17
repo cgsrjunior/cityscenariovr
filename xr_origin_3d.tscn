@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://diyu06cw06syv" path="res://addons/godot-xr-tools/player/player_body.tscn" id="5_rhvbn"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_rhvbn"]
-size = Vector3(0.689819, 1, 0.726318)
+size = Vector3(0.689819, 1.41455, 0.726318)
 
 [node name="XROrigin3D" type="XROrigin3D"]
 
@@ -33,5 +33,5 @@ step_turn_angle = 45.0
 [node name="PlayerBody" parent="." instance=ExtResource("5_rhvbn")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0180054, 0, 0.0189209)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0180054, 0.207275, 0.0189209)
 shape = SubResource("BoxShape3D_rhvbn")

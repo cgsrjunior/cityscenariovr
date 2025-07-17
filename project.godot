@@ -46,8 +46,16 @@ primary_down={
 "deadzone": 0.2,
 "events": []
 }
+grip_click={
+"deadzone": 0.2,
+"events": []
+}
+vr_b_button={
+"deadzone": 0.2,
+"events": []
+}
 
 [xr]
 
-openxr/enabled=true
+openxr/default_action_map="uid://d3ctqv58nmvvh"
 shaders/enabled=true

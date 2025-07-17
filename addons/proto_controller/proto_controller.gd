@@ -20,7 +20,7 @@ extends CharacterBody3D
 ## Look around rotation speed.
 @export var look_speed : float = 0.002
 ## Normal speed.
-@export var base_speed : float = 7.0
+@export var base_speed : float = 15.0
 ## Speed of jump.
 @export var jump_velocity : float = 4.5
 ## How fast do we run?
@@ -31,6 +31,9 @@ extends CharacterBody3D
 @export var z_move_threshold := 1.2  # Variação mínima para iniciar movimento
 @export var z_stop_threshold := 0.3  # Variação mínima para considerar parado
 var last_z_values := []  # Para calcular média móvel
+
+@onready var foot_step_sfx: AudioStreamPlayer3D = $"../FootStepSFX"
+
 
 @export_group("Input Actions")
 ## Name of Input Action to move Left.
@@ -79,6 +82,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			enable_freefly()
 		else:
 			disable_freefly()
+			
+	# Reset position to origin when O is pressed
+	if event is InputEventKey and event.pressed and event.keycode == KEY_O:
+		reset_to_origin()
+
+# Adicione este novo método à classe
+func reset_to_origin() -> void:
+	foot_step_sfx.play()
+	# Reseta a posição para (0,0,0)
+	global_transform.origin = Vector3.ZERO
+	# Reseta a velocidade para evitar movimento indesejado
+	velocity = Vector3.ZERO
+	print("Personagem retornou à origem")
 
 func _physics_process(delta: float) -> void:
 	# If freeflying, handle freefly and nothing else
@@ -93,7 +109,7 @@ func _physics_process(delta: float) -> void:
 	if has_gravity:
 		if not is_on_floor():
 			velocity += get_gravity() * delta
-
+			
 	# Apply jumping
 	if can_jump:
 		if Input.is_action_just_pressed(input_jump) and is_on_floor():

@@ -10,7 +10,7 @@ var _last_accel := Vector3.ZERO
 var _consecutive_detections := 0
 
 func _ready():
-	_ws.connect_to_url("ws://192.168.0.192:8080/sensor/connect?type=android.sensor.accelerometer")
+	_ws.connect_to_url("ws://143.54.52.82:8080/sensor/connect?type=android.sensor.accelerometer")
 
 func _process(_delta):
 	_ws.poll()
@@ -30,6 +30,11 @@ func _process_sensor_data(data):
 		var delta_variation = current_accel - _last_accel
 		_last_accel = current_accel
 		
+		# Consider that the cellphone was face up in the knee and the Y axis point to the front
+		# we need to generate a vector that get YZ and transform into XY for usage on the camera
+		# movement with a vector independent from view camera
+		var vector_front = Vector3(sensor_values[1], 0, sensor_values[2])
+		
 		var movement_force = delta_variation.length()
 		# print(movement_force)
 		
@@ -39,7 +44,7 @@ func _process_sensor_data(data):
 				# Normaliza a intensidade (0.0 a 1.0)
 				var normalized_intensity = min(movement_force / MAX_ACCELERATION, 1.0)
 				print(normalized_intensity)
-				movement_intensity_changed.emit(normalized_intensity)
+				movement_intensity_changed.emit(normalized_intensity, vector_front)
 		else:
 			_consecutive_detections = 0
 			movement_intensity_changed.emit(0.0)
